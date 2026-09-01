@@ -4,6 +4,12 @@ on:
   schedule:
     - cron: "17 */6 * * *"
   workflow_dispatch:
+    inputs:
+      force:
+        description: Revalidate and rebuild the current upstream revision
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write
@@ -34,8 +40,9 @@ jobs:
         run: |
           upstream_sha="$(git rev-parse upstream/main)"
           current_sha="$(jq -r '.upstream.commit // ""' catalog/current.json)"
+          force="${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}"
           echo "sha=${upstream_sha}" >> "${GITHUB_OUTPUT}"
-          if [ "${upstream_sha}" = "${current_sha}" ]; then
+          if [ "${upstream_sha}" = "${current_sha}" ] && [ "${force}" != "true" ]; then
             echo "update=false" >> "${GITHUB_OUTPUT}"
           else
             echo "update=true" >> "${GITHUB_OUTPUT}"

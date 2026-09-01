@@ -54,7 +54,7 @@ jobs:
           upstream_sha="${{ steps.upstream.outputs.sha }}"
           upstream_root="${RUNNER_TEMP}/hyperframes-upstream"
           catalog_output="${RUNNER_TEMP}/current.json"
-          git worktree add --detach "${upstream_root}" upstream/main
+          GIT_LFS_SKIP_SMUDGE=1 git worktree add --detach "${upstream_root}" upstream/main
           node --test scripts/lynlo-build-template-catalog.test.mjs
           node scripts/lynlo-build-template-catalog.mjs \
             --source-root "${upstream_root}" \

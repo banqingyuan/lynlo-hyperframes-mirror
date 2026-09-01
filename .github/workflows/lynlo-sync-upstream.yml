@@ -68,7 +68,7 @@ jobs:
           upstream_sha="${{ steps.upstream.outputs.sha }}"
           upstream_root="${RUNNER_TEMP}/hyperframes-upstream"
           rsync -a --delete \
-            --exclude='.git/' \
+            --exclude='.git' \
             --exclude='.github/workflows/' \
             --exclude='Domain.md' \
             --exclude='catalog/' \

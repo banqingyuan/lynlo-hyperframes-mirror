@@ -1,0 +1,59 @@
+name: Lynlo HyperFrames mirror sync
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: lynlo-hyperframes-mirror-sync
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout mirror
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure Git
+        run: |
+          git config user.name "lynlo-mirror[bot]"
+          git config user.email "lynlo-mirror[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/heygen-com/hyperframes.git
+          git fetch upstream main --tags
+
+      - name: Validate upstream and build catalog
+        run: |
+          upstream_sha="$(git rev-parse upstream/main)"
+          upstream_root="${RUNNER_TEMP}/hyperframes-upstream"
+          catalog_output="${RUNNER_TEMP}/current.json"
+          git worktree add --detach "${upstream_root}" upstream/main
+          node --test scripts/lynlo-build-template-catalog.test.mjs
+          node scripts/lynlo-build-template-catalog.mjs \
+            --source-root "${upstream_root}" \
+            --output "${catalog_output}" \
+            --upstream-commit "${upstream_sha}" \
+            --synced-at "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+
+      - name: Publish validated mirror
+        run: |
+          upstream_sha="$(git rev-parse upstream/main)"
+          git merge --no-edit upstream/main
+          mkdir -p catalog
+          cp "${RUNNER_TEMP}/current.json" catalog/current.json
+          git add catalog/current.json
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(mirror): index HyperFrames ${upstream_sha:0:12}"
+          fi
+          tag="upstream-${upstream_sha}"
+          if ! git rev-parse --verify --quiet "refs/tags/${tag}"; then
+            git tag -a "${tag}" -m "HyperFrames upstream ${upstream_sha}"
+          fi
+          git push origin HEAD:main --follow-tags

@@ -1,5 +1,5 @@
 {
-  "catalogDigest": "31fb234f7b6fa91e225065bba4e26d7781eb3325c619c56f4923774252253c6d",
+  "catalogDigest": "6dd4446d86080f5087885b23884a15630ad3f07aac8caa68ec1d76bd67cf2ef1",
   "counts": {
     "blocks": 155,
     "components": 218,
@@ -12,7 +12,7 @@
       "mirrorPath": "registry/blocks/ai-chat-reveal",
       "name": "ai-chat-reveal",
       "registryDependencies": [],
-      "sourceDigest": "ae754fd4f664cc08cf4c7ea28db6039e6f286a467ba896a06358cf9e26455c4b",
+      "sourceDigest": "f7bf0b27558ff0789e57ee39423b362a714c30616a335fb1e5bf7fe44e664443",
       "stability": "unspecified",
       "tags": [
         "ad-template",
@@ -209,7 +209,7 @@
       "mirrorPath": "registry/blocks/chatgpt-exchange",
       "name": "chatgpt-exchange",
       "registryDependencies": [],
-      "sourceDigest": "5779eac970c066d181885269523199f417b888d62fa73bc7974f547c7e065fe9",
+      "sourceDigest": "4590f0a91c47c1ad2b6c19de7a027432e03a48b628699ac1b1c4e64e6b9d1aa9",
       "stability": "unspecified",
       "tags": [
         "ad-template",
@@ -281,7 +281,7 @@
       "mirrorPath": "registry/blocks/claude-exchange",
       "name": "claude-exchange",
       "registryDependencies": [],
-      "sourceDigest": "9c99287b08ca84490d145c67be8d5ca9104a8f089417bfc46e6c85482c9ce153",
+      "sourceDigest": "8a5fe78805bc4e9544927e0a55be3affac56d7fe304e6e32ffb3d8da5e2aeb1e",
       "stability": "unspecified",
       "tags": [
         "ad-template",
@@ -2171,7 +2171,7 @@
       "mirrorPath": "registry/blocks/message-thread-reveal",
       "name": "message-thread-reveal",
       "registryDependencies": [],
-      "sourceDigest": "b8c708dd586c2ff29e8b5519766c3638eb41bc3b68392e401431637e445068e7",
+      "sourceDigest": "a93ea6326bb59b433e4b82b0a17ebf1592d2d62a28c1f1a1bbc31f52890d98b3",
       "stability": "unspecified",
       "tags": [
         "ad-template",
@@ -2396,7 +2396,7 @@
       "mirrorPath": "registry/blocks/notes-reveal",
       "name": "notes-reveal",
       "registryDependencies": [],
-      "sourceDigest": "700d91431b62e30289f698c1edd641432ef7f4692f1b416a0bbda7a889761514",
+      "sourceDigest": "cf79e42ab94b7ee459a685721e0378dde145f522c006c91c93d6a1aa25798bca",
       "stability": "unspecified",
       "tags": [
         "ad-template",
@@ -2408,7 +2408,7 @@
       ],
       "title": "Notes Reveal",
       "type": "block",
-      "variableCount": 9,
+      "variableCount": 20,
       "dimensions": {
         "height": 1920,
         "width": 1080
@@ -2420,7 +2420,7 @@
       "mirrorPath": "registry/blocks/notification-cascade",
       "name": "notification-cascade",
       "registryDependencies": [],
-      "sourceDigest": "aea55e5e8f9e9d64d22ee52575e7fd67f66fe70f05f8207004fcf991cf209db7",
+      "sourceDigest": "2122f4dbe5fa0d4c3195d73dfa1da7444cdad707a5265e2bc2ccb1e4df49cdb8",
       "stability": "unspecified",
       "tags": [
         "ad-template",
@@ -2645,7 +2645,7 @@
       "mirrorPath": "registry/blocks/share-sheet-carousel",
       "name": "share-sheet-carousel",
       "registryDependencies": [],
-      "sourceDigest": "4dfc5199760e5d8ba7ac10ab10f8a44dc9df75115630b1cab383ad003ab2f8f7",
+      "sourceDigest": "2da414bba3a85a18e97b95922f6ef1f466e1860f253aa5cf6d3d7ee775cc1606",
       "stability": "unspecified",
       "tags": [
         "ad-template",
@@ -2668,7 +2668,7 @@
       "mirrorPath": "registry/blocks/slack-notification-ad",
       "name": "slack-notification-ad",
       "registryDependencies": [],
-      "sourceDigest": "ca0df45a88045d25d6400c29e8393820bf86a0d2913ee0db65da14d5b1bd0515",
+      "sourceDigest": "b87c92cc830b779e9ccd09583e347a8f3f47ee717ae7869f3f721bcf8fb89c23",
       "stability": "unspecified",
       "tags": [
         "ad-template",
@@ -8111,16 +8111,16 @@
     }
   ],
   "mirror": {
-    "ref": "upstream-f42b5ce86c23268a533217e012cd228434c84e02",
+    "ref": "upstream-254fe4bd8a3f00c1e70ac5e38a1bce25060f7590",
     "repository": "banqingyuan/lynlo-hyperframes-mirror",
-    "syncedAt": "2026-09-01T08:15:39.000Z"
+    "syncedAt": "2026-09-01T16:40:05.000Z"
   },
   "registryDigest": "8b65bcf513376144c203154a7047ce3c6f3b7b1cefc91d60ea676cb1bab625fa",
   "schemaVersion": 1,
   "source": "hyperframes-official-registry",
   "upstream": {
     "branch": "main",
-    "commit": "f42b5ce86c23268a533217e012cd228434c84e02",
+    "commit": "254fe4bd8a3f00c1e70ac5e38a1bce25060f7590",
     "repository": "heygen-com/hyperframes"
   }
 }

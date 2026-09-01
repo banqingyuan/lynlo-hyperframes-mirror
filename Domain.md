@@ -6,7 +6,7 @@
 
 ## 项目功能概述与架构设计
 
-仓库以 HyperFrames 上游 `main` 为基础，只增加 Lynlo 自动同步工作流、Catalog 生成器和领域文档。GitHub Actions 先在临时 Worktree 校验完整 Registry，再合并上游并发布新的 `catalog/current.json`；失败时远端当前版本不变。
+仓库以 HyperFrames 上游 `main` 为基础，只增加 Lynlo 自动同步工作流、Catalog 生成器和领域文档。GitHub Actions 先在临时 Worktree 校验完整 Registry，再同步上游内容并发布新的 `catalog/current.json`；失败时远端当前版本不变。上游 CI Workflow 在镜像仓库保持禁用且不参与同步，避免镜像误触上游发布任务。
 
 ## 技术栈
 

@@ -29,9 +29,22 @@ jobs:
           git remote add upstream https://github.com/heygen-com/hyperframes.git
           git fetch upstream main --tags
 
-      - name: Validate upstream and build catalog
+      - id: upstream
+        name: Discover upstream revision
         run: |
           upstream_sha="$(git rev-parse upstream/main)"
+          current_sha="$(jq -r '.upstream.commit // ""' catalog/current.json)"
+          echo "sha=${upstream_sha}" >> "${GITHUB_OUTPUT}"
+          if [ "${upstream_sha}" = "${current_sha}" ]; then
+            echo "update=false" >> "${GITHUB_OUTPUT}"
+          else
+            echo "update=true" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Validate upstream and build catalog
+        if: steps.upstream.outputs.update == 'true'
+        run: |
+          upstream_sha="${{ steps.upstream.outputs.sha }}"
           upstream_root="${RUNNER_TEMP}/hyperframes-upstream"
           catalog_output="${RUNNER_TEMP}/current.json"
           git worktree add --detach "${upstream_root}" upstream/main
@@ -43,14 +56,23 @@ jobs:
             --synced-at "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
 
       - name: Publish validated mirror
+        if: steps.upstream.outputs.update == 'true'
         run: |
-          upstream_sha="$(git rev-parse upstream/main)"
-          git merge --no-edit upstream/main
+          upstream_sha="${{ steps.upstream.outputs.sha }}"
+          upstream_root="${RUNNER_TEMP}/hyperframes-upstream"
+          rsync -a --delete \
+            --exclude='.git/' \
+            --exclude='.github/workflows/' \
+            --exclude='Domain.md' \
+            --exclude='catalog/' \
+            --exclude='scripts/lynlo-build-template-catalog.mjs' \
+            --exclude='scripts/lynlo-build-template-catalog.test.mjs' \
+            "${upstream_root}/" ./
           mkdir -p catalog
           cp "${RUNNER_TEMP}/current.json" catalog/current.json
-          git add catalog/current.json
+          git add -A
           if ! git diff --cached --quiet; then
-            git commit -m "chore(mirror): index HyperFrames ${upstream_sha:0:12}"
+            git commit -m "chore(mirror): sync HyperFrames ${upstream_sha:0:12}"
           fi
           tag="upstream-${upstream_sha}"
           if ! git rev-parse --verify --quiet "refs/tags/${tag}"; then

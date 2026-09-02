@@ -1,10 +1,10 @@
 {
-  "catalogDigest": "6dd4446d86080f5087885b23884a15630ad3f07aac8caa68ec1d76bd67cf2ef1",
+  "catalogDigest": "eb5c0d1f75d353f6294deb17bafa658f3a9660c7f4373b1c48e55d014764d410",
   "counts": {
     "blocks": 155,
-    "components": 218,
+    "components": 219,
     "examples": 9,
-    "total": 382
+    "total": 383
   },
   "items": [
     {
@@ -1293,7 +1293,7 @@
       "mirrorPath": "registry/blocks/flowchart",
       "name": "flowchart",
       "registryDependencies": [],
-      "sourceDigest": "4ec1711a1877fe6a8debf7e45442840376c7daa36bb35ca5b97ea5be8e74d28d",
+      "sourceDigest": "d2044a9d864fde59826fd78b43cdaca78cac005c6e434f3f79a3d1bb3fc11b9e",
       "stability": "unspecified",
       "tags": [
         "diagram",
@@ -1318,7 +1318,7 @@
       "mirrorPath": "registry/blocks/flowchart-vertical",
       "name": "flowchart-vertical",
       "registryDependencies": [],
-      "sourceDigest": "8b82141bf758e452e29ae74d193dc1ae7cb5bdb4d1338beea04924f1f6a88150",
+      "sourceDigest": "bf49290f33c03ce4565de1f6c3ed61aa0d5dbe6527d6c30de9943a698cb7cb65",
       "stability": "unspecified",
       "tags": [
         "diagram",
@@ -5420,6 +5420,24 @@
       }
     },
     {
+      "description": "Words enter from the right and push the growing phrase left until the final line locks centered.",
+      "mirrorPath": "registry/components/kinetic-center-build",
+      "name": "kinetic-center-build",
+      "registryDependencies": [],
+      "sourceDigest": "d42a74cee4008546e7c9e602306b01b0e8469ab0604a71064746e312b8a94126",
+      "stability": "unspecified",
+      "tags": [
+        "kinetic-type",
+        "motion-primitive",
+        "remocn-port",
+        "reveal",
+        "text-effects"
+      ],
+      "title": "Kinetic Center Build",
+      "type": "component",
+      "variableCount": 5
+    },
+    {
       "description": "A held sentence keeps its fixed text in place while one widest-word masked slot rolls through alternatives and settles on the final option.",
       "mirrorPath": "registry/components/kinetic-type-swap",
       "name": "kinetic-type-swap",
@@ -7212,7 +7230,7 @@
       "mirrorPath": "registry/components/tabs-slide-indicator",
       "name": "tabs-slide-indicator",
       "registryDependencies": [],
-      "sourceDigest": "e369b525cdde13a0bdf95dc912f6bef2d5414d10922ee7ac85035742f6e1f982",
+      "sourceDigest": "d3d23f92cb491acd66fc72d12677eab8dd52896464f3557e506984a870927876",
       "stability": "unspecified",
       "tags": [
         "indicator",
@@ -8111,16 +8129,16 @@
     }
   ],
   "mirror": {
-    "ref": "upstream-db92f8ab592e92571f172e1ba5c9791e002366bb",
+    "ref": "upstream-f498be94c24e2bb66538f1f9447ae32935587c42",
     "repository": "banqingyuan/lynlo-hyperframes-mirror",
-    "syncedAt": "2026-09-01T21:02:16.000Z"
+    "syncedAt": "2026-09-02T04:33:11.000Z"
   },
-  "registryDigest": "8b65bcf513376144c203154a7047ce3c6f3b7b1cefc91d60ea676cb1bab625fa",
+  "registryDigest": "336e9d7345f58f8dd22bbb08fa290d882d4b3a4dd7b7b7b188d727324f721d75",
   "schemaVersion": 1,
   "source": "hyperframes-official-registry",
   "upstream": {
     "branch": "main",
-    "commit": "db92f8ab592e92571f172e1ba5c9791e002366bb",
+    "commit": "f498be94c24e2bb66538f1f9447ae32935587c42",
     "repository": "heygen-com/hyperframes"
   }
 }

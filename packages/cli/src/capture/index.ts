@@ -49,6 +49,7 @@ import {
 import type { VisionCaptionOutcome } from "./contentExtractor.js";
 import { loadEnvFile, generateProjectScaffold } from "./scaffolding.js";
 import { detectBlockedPage } from "./pageBlockDetection.js";
+import { writeResponseRecord } from "./responseRecord.js";
 import { navigateForCapture } from "./navigateForCapture.js";
 import {
   captureProtocolTimeoutMs,
@@ -302,8 +303,14 @@ export async function captureWebsite(
       progress("warn", message);
     }
 
+    // Persisted before the blocked-page check, so a capture that reaches navigation always leaves
+    // a record of what the server said. That makes the file's ABSENCE mean "capture never got a
+    // response", which is a third state distinct from a status of 404 and from a status of null.
+    const httpStatus = navigationResponse?.status() ?? null;
+    writeResponseRecord(join(outputDir, "extracted"), { status: httpStatus });
+
     const blockedReason = detectBlockedPage({
-      httpStatus: navigationResponse?.status() ?? null,
+      httpStatus,
       ...(contentCheckTimedOut
         ? {
             title: "",
@@ -911,6 +918,7 @@ export async function captureWebsite(
       ok: true,
       projectDir: outputDir,
       url,
+      httpStatus,
       title: tokens.title,
       extracted,
       screenshots,

@@ -135,6 +135,8 @@ export function useExternalFileChangeCoordinator({
   const lastEventIdentityRef = useRef<string | null>(null);
   const blockedRef = useRef(blocked);
   const snapshotWriteTailRef = useRef<Promise<void>>(Promise.resolve());
+  const drainingRef = useRef(false);
+  const pendingPayloadRef = useRef<{ payload: unknown } | null>(null);
   blockedRef.current = blocked;
 
   useEffect(() => {
@@ -213,37 +215,11 @@ export function useExternalFileChangeCoordinator({
     await next;
   }, []);
 
-  const processChange = useCallback(
+  const drainOnePending = useCallback(
     // fallow-ignore-next-line complexity
-    async (payload: unknown, allowDuplicate = false) => {
+    async (payload: unknown) => {
       const path = readStudioFileChangePath(payload);
-      if (!path || !projectId) return;
-      const pendingTimelinePaths = pendingTimelineEditPathRef.current;
-      // The old path-only suppression could drop a real agent/user write that
-      // raced ahead of the timeline write receipt. Clear the legacy marker but
-      // decide ownership only from the exact write token/content below.
-      pendingTimelinePaths.delete(path);
-
-      const content = readFileChangeContent(payload);
-      const token = readFileChangeWriteToken(payload);
-      logReload("file-change", { path, token: token ?? null, hasContent: content != null });
-      const identity = eventIdentity(path, payload);
-      if (!allowDuplicate && identity != null && identity === lastEventIdentityRef.current) {
-        logReload("suppressed", { path, why: "duplicate event" });
-        return;
-      }
-      lastEventIdentityRef.current = identity;
-
-      const ownWriteToken = consumeStudioWriteToken(token);
-      const ownContentEcho = content != null && isSelfWriteEcho(path, content);
-      if (ownWriteToken || ownContentEcho) {
-        onAcceptedPersistedFileChange(path);
-        logReload("suppressed", {
-          path,
-          why: ownWriteToken ? "own write token" : "own content echo",
-        });
-        return;
-      }
+      if (!path) return;
 
       const generation = ++generationRef.current;
       const result = await drainPendingChanges();
@@ -253,7 +229,7 @@ export function useExternalFileChangeCoordinator({
         const previousBlocked = blockedRef.current;
         if (previousBlocked?.status === "failed" && deleteConflictSnapshot) {
           try {
-            await deleteConflictSnapshot(projectId, path);
+            await deleteConflictSnapshot(projectId!, path);
           } catch (error) {
             if (mountedRef.current && generation === generationRef.current) {
               setBlocked({ ...previousBlocked, generation, error });
@@ -267,6 +243,7 @@ export function useExternalFileChangeCoordinator({
         reloadAcceptedGeneration(path);
         return;
       }
+      const content = readFileChangeContent(payload);
       if (result.status === "failed") {
         const candidate = getPendingCandidate?.();
         const studioContent = candidate?.path === path ? candidate.content : null;
@@ -275,7 +252,7 @@ export function useExternalFileChangeCoordinator({
           try {
             await persistSnapshotInOrder(() =>
               persistFailureSnapshot(
-                projectId,
+                projectId!,
                 path,
                 studioContent,
                 readFileChangeVersion(payload),
@@ -305,7 +282,7 @@ export function useExternalFileChangeCoordinator({
         return;
       }
       try {
-        await persistSnapshotInOrder(() => persistConflictSnapshot(projectId, result.error));
+        await persistSnapshotInOrder(() => persistConflictSnapshot(projectId!, result.error));
       } catch (error) {
         if (!mountedRef.current || generation !== generationRef.current) return;
         setBlocked({
@@ -323,9 +300,8 @@ export function useExternalFileChangeCoordinator({
       setBlocked({ status: "conflict", generation, error: result.error, payload });
     },
     [
-      projectId,
-      pendingTimelineEditPathRef,
       drainPendingChanges,
+      projectId,
       deleteConflictSnapshot,
       getPendingCandidate,
       persistConflictSnapshot,
@@ -334,6 +310,55 @@ export function useExternalFileChangeCoordinator({
       reloadAcceptedGeneration,
       onAcceptedPersistedFileChange,
     ],
+  );
+
+  const startDrainLoop = useCallback(async () => {
+    if (drainingRef.current) return;
+    drainingRef.current = true;
+    try {
+      while (mountedRef.current) {
+        const pending = pendingPayloadRef.current;
+        if (!pending) break;
+        pendingPayloadRef.current = null;
+        await drainOnePending(pending.payload);
+      }
+    } finally {
+      drainingRef.current = false;
+    }
+  }, [drainOnePending]);
+
+  const processChange = useCallback(
+    // fallow-ignore-next-line complexity
+    (payload: unknown) => {
+      const path = readStudioFileChangePath(payload);
+      if (!path || !projectId) return;
+      pendingTimelineEditPathRef.current.delete(path);
+
+      const content = readFileChangeContent(payload);
+      const token = readFileChangeWriteToken(payload);
+      logReload("file-change", { path, token: token ?? null, hasContent: content != null });
+      const identity = eventIdentity(path, payload);
+      if (identity != null && identity === lastEventIdentityRef.current) {
+        logReload("suppressed", { path, why: "duplicate event" });
+        return;
+      }
+      lastEventIdentityRef.current = identity;
+
+      const ownWriteToken = consumeStudioWriteToken(token);
+      const ownContentEcho = content != null && isSelfWriteEcho(path, content);
+      if (ownWriteToken || ownContentEcho) {
+        onAcceptedPersistedFileChange(path);
+        logReload("suppressed", {
+          path,
+          why: ownWriteToken ? "own write token" : "own content echo",
+        });
+        return;
+      }
+
+      pendingPayloadRef.current = { payload };
+      void startDrainLoop();
+    },
+    [projectId, pendingTimelineEditPathRef, startDrainLoop, onAcceptedPersistedFileChange],
   );
 
   useEffect(() => {
@@ -357,7 +382,7 @@ export function useExternalFileChangeCoordinator({
     if (!current || current.status === "conflict" || current.recovered) return;
     resetSaveQueues?.();
     lastEventIdentityRef.current = null;
-    await processChange(current.payload, true);
+    processChange(current.payload);
   }, [processChange, resetSaveQueues]);
 
   const useExternalFile = useCallback(

@@ -584,6 +584,7 @@ function updateReferences(projectDir: string, oldPath: string, newPath: string):
 
   let updatedCount = 0;
   for (const file of textFiles) {
+    if (!isSafePath(projectDir, file)) continue;
     const content = readFileSync(file, "utf-8");
 
     // Only replace full relative paths — never bare filenames, which can
@@ -2219,6 +2220,10 @@ async function processUploadedFiles(
       finalPath = resolve(targetDir, finalName);
     }
 
+    // The collision suffix chooses a different path; validate that destination
+    // too, including dangling symlinks that existsSync treats as absent.
+    if (!isSafePath(projectDir, finalPath)) continue;
+
     const buffer = Buffer.from(await value.arrayBuffer());
     const validation = validateUploadedMediaBuffer(finalName, buffer);
     if (!validation.ok) {
@@ -2253,10 +2258,10 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
       return c.json({ error: "not found" }, 404);
     }
 
-    const content = readFileSync(res.absPath, "utf-8");
+    const content = readFileSync(res.absPath);
     const version = fileContentVersion(content);
     c.header("ETag", version);
-    return c.json({ filename: res.filePath, content, version });
+    return c.json({ filename: res.filePath, content: content.toString("utf-8"), version });
   });
 
   // ── Write (overwrite) ──
@@ -2265,13 +2270,13 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
     const res = await resolveProjectFile(c, adapter);
     if ("error" in res) return res.error;
 
-    const body = await c.req.text();
+    const body = Buffer.from(await c.req.arrayBuffer());
     const expectedVersion = c.req.header("If-Match")?.trim() ?? null;
     const createOnly = c.req.header("If-None-Match")?.trim() === "*";
     if (expectedVersion === null && !createOnly) {
-      let currentContent: string | null = null;
+      let currentContent: Buffer | null = null;
       try {
-        currentContent = readFileSync(res.absPath, "utf-8");
+        currentContent = readFileSync(res.absPath);
       } catch (error) {
         if (!error || typeof error !== "object" || !("code" in error) || error.code !== "ENOENT") {
           throw error;
@@ -2282,7 +2287,7 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
           error: "precondition required",
           path: res.filePath,
           currentVersion: currentContent === null ? null : fileContentVersion(currentContent),
-          currentContent,
+          currentContent: currentContent?.toString("utf-8") ?? null,
         },
         428,
       );
@@ -2298,19 +2303,19 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
         if (!error || typeof error !== "object" || !("code" in error) || error.code !== "EEXIST") {
           throw error;
         }
-        const currentContent = readFileSync(res.absPath, "utf-8");
+        const currentContent = readFileSync(res.absPath);
         return c.json(
           {
             error: "file conflict",
             path: res.filePath,
             currentVersion: fileContentVersion(currentContent),
-            currentContent,
+            currentContent: currentContent.toString("utf-8"),
           },
           409,
         );
       }
       try {
-        writeSync(fd, body, 0, "utf-8");
+        writeSync(fd, body, 0, body.length, 0);
       } finally {
         closeSync(fd);
       }
@@ -2333,7 +2338,7 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
         );
       }
       try {
-        const currentContent = readFileSync(fd, "utf-8");
+        const currentContent = readFileSync(fd);
         const currentVersion = fileContentVersion(currentContent);
         if (expectedVersion !== currentVersion) {
           return c.json(
@@ -2341,7 +2346,7 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
               error: "file conflict",
               path: res.filePath,
               currentVersion,
-              currentContent,
+              currentContent: currentContent.toString("utf-8"),
             },
             409,
           );
@@ -2350,7 +2355,7 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
         if (backup.error)
           console.warn(`Failed to create backup for ${res.filePath}: ${backup.error}`);
         ftruncateSync(fd, 0);
-        writeSync(fd, body, 0, "utf-8");
+        writeSync(fd, body, 0, body.length, 0);
       } finally {
         closeSync(fd);
       }
@@ -2375,13 +2380,16 @@ export function registerFileRoutes(api: Hono, adapter: StudioApiAdapter): void {
     const res = await resolveProjectFile(c, adapter);
     if ("error" in res) return res.error;
 
-    if (existsSync(res.absPath)) {
+    ensureDir(res.absPath);
+    const body = Buffer.from(await c.req.arrayBuffer());
+    try {
+      writeFileSync(res.absPath, body, { flag: "wx" });
+    } catch (error) {
+      if (!error || typeof error !== "object" || !("code" in error) || error.code !== "EEXIST") {
+        throw error;
+      }
       return c.json({ error: "already exists" }, 409);
     }
-
-    ensureDir(res.absPath);
-    const body = await c.req.text().catch(() => "");
-    writeFileSync(res.absPath, body, "utf-8");
 
     return c.json({ ok: true, path: res.filePath }, 201);
   });

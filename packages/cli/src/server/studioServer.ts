@@ -779,7 +779,7 @@ export function createStudioServer(options: StudioServerOptions): StudioServer {
         const absPath = resolve(projectDir, path);
         let version: string | null = null;
         try {
-          version = fileContentVersion(readFileSync(absPath, "utf-8"));
+          version = fileContentVersion(readFileSync(absPath));
         } catch {
           // A deletion has no current bytes to match against an API write receipt.
         }
@@ -790,11 +790,17 @@ export function createStudioServer(options: StudioServerOptions): StudioServer {
       };
       // Re-applied here because the watcher now also emits the signature
       // manifest files, which must not trigger a browser reload.
-      watcher.addListener((changedPath) => {
+      const wrappedListener = (changedPath: string) => {
         if (shouldWatchProjectFile(changedPath)) listener(changedPath);
-      });
-      while (true) {
-        await stream.sleep(30000);
+      };
+      watcher.addListener(wrappedListener);
+      stream.onAbort(() => watcher.removeListener(wrappedListener));
+      try {
+        while (true) {
+          await stream.sleep(30000);
+        }
+      } finally {
+        watcher.removeListener(wrappedListener);
       }
     });
   });

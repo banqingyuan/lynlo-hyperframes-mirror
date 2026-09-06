@@ -24,6 +24,7 @@ import {
   totalDrops,
 } from "./assetDownloader.js";
 import type { IconCandidate } from "./faviconRanker.js";
+import { CAPTURE_USER_AGENT } from "./userAgent.js";
 import { extractFontMetadata } from "./fontMetadataExtractor.js";
 import { normalizeErrorMessage } from "../utils/errorMessage.js";
 import { diag } from "../ui/diagnostics.js";
@@ -166,9 +167,7 @@ export async function captureWebsite(
 
     const page1 = await chromeBrowser.newPage();
     await page1.setViewport({ width: viewportWidth, height: viewportHeight });
-    await page1.setUserAgent(
-      "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
-    );
+    await page1.setUserAgent(CAPTURE_USER_AGENT);
 
     // Set up hooks BEFORE navigation
     await setupAnimationCapture(page1);
@@ -685,6 +684,14 @@ export async function captureWebsite(
       });
       assets = assetPass.assets;
       assetDrops = assetPass.drops;
+      // Which icons the site declared, what each one is, and why one became favicon.<ext>.
+      // The brand-kit consumer needs the shape to decide which tile an icon belongs in; the
+      // reason is what stops a substituted headline from being silent again.
+      writeFileSync(
+        join(outputDir, "extracted", "icons-manifest.json"),
+        JSON.stringify(assetPass.icons, null, 2),
+        "utf-8",
+      );
       phase(
         "assets",
         remainingMs() > 0 ? "completed" : "degraded",

@@ -8129,16 +8129,16 @@
     }
   ],
   "mirror": {
-    "ref": "upstream-0d5d3f3eb3aecd9fd64954d2767d3d64e97e58fc",
+    "ref": "upstream-dc9fb673203dda0a2c0951f3b698cf8cd0ea8d61",
     "repository": "banqingyuan/lynlo-hyperframes-mirror",
-    "syncedAt": "2026-09-07T04:41:02.000Z"
+    "syncedAt": "2026-09-07T21:31:00.000Z"
   },
   "registryDigest": "336e9d7345f58f8dd22bbb08fa290d882d4b3a4dd7b7b7b188d727324f721d75",
   "schemaVersion": 1,
   "source": "hyperframes-official-registry",
   "upstream": {
     "branch": "main",
-    "commit": "0d5d3f3eb3aecd9fd64954d2767d3d64e97e58fc",
+    "commit": "dc9fb673203dda0a2c0951f3b698cf8cd0ea8d61",
     "repository": "heygen-com/hyperframes"
   }
 }

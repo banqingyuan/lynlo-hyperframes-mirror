@@ -231,6 +231,35 @@ export const coreRules: Array<(ctx: LintContext) => HyperframeLintFinding[]> = [
     return findings;
   },
 
+  // unbalanced_style_tags
+  ({ source }) => {
+    let opens = 0;
+    let closes = 0;
+    let firstTag = "";
+    for (const match of source.matchAll(
+      /<script\b[\s\S]*?<\/script[^>]*>|<style\b|<\/style\s*>/gi,
+    )) {
+      const token = match[0].toLowerCase();
+      if (token.startsWith("<script")) continue;
+      if (token.startsWith("</style")) closes += 1;
+      else opens += 1;
+      if (!firstTag) firstTag = match[0];
+    }
+    if (opens === closes) return [];
+    return [
+      {
+        code: "unbalanced_style_tags",
+        severity: "error",
+        message:
+          opens > closes
+            ? "A <style> block is never closed, so following markup is parsed as CSS and disappears from the frame."
+            : "An extra </style> closes the stylesheet early, so trailing CSS renders as visible on-screen text.",
+        fixHint: "Keep <style> and </style> paired. One extra closer dumps CSS into the body.",
+        snippet: truncateSnippet(firstTag || "<style>"),
+      },
+    ];
+  },
+
   // visible_markup_comment
   ({ source }) => {
     const snippet = findVisibleMarkupCommentLeak(source);
